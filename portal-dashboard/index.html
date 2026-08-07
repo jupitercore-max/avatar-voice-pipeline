@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0e14">
+  <meta name="application-name" content="JC Dream CC">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=2160, initial-scale=1.0, user-scalable=no">
+  <title>JC Dream Command Center</title>
+<style>
+  :root {
+    --bg: #06080c;
+    --bg-panel: #0e1220;
+    --bg-card: #131830;
+    --border: #232a4a;
+    --accent: #7c6cf0;
+    --accent2: #00e8b8;
+    --accent3: #ff8855;
+    --text: #f0f2ff;
+    --text-dim: #7080a8;
+    --text-bright: #ffffff;
+    --green: #00e878;
+    --yellow: #ffcc40;
+    --red: #ff4848;
+    --blue: #4db8ff;
+    --cyan: #00d4ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    overflow-y: auto;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: radial-gradient(ellipse at 20% 0%, #0a1028 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, #0a1828 0%, transparent 60%),
+                var(--bg);
+  }
+
+  /* ===== FULLSCREEN BUTTON ===== */
+  .fs-btn {
+    position: fixed;
+    top: 6px;
+    right: 6px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(124, 108, 240, 0.25);
+    border: 1px solid rgba(124, 108, 240, 0.5);
+    color: var(--accent);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    transition: background 0.2s;
+  }
+  .fs-btn:active { background: rgba(124, 108, 240, 0.5); }
+
+  /* ===== DASHBOARD GRID ===== */
+  .dashboard {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+    padding: 8px 28px 4px;
+    gap: 10px;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    box-shadow: 0 0 24px rgba(124, 108, 240, 0.4);
+  }
+
+  .logo-text {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-bright);
+  }
+  .logo-text span { color: var(--accent2); }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 28px;
+    border-radius: 32px;
+    background: rgba(0, 232, 120, 0.1);
+    border: 1px solid rgba(0, 232, 120, 0.3);
+  }
+
+  .header-status .led {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .header-status .text {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .header-loc {
+    font-size: 22px;
+    color: var(--text-dim);
+  }
+
+  .clock { text-align: right; }
+  .clock-time {
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 200;
+    color: var(--text-bright);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .clock-date {
+    font-size: clamp(16px, 1.2vw, 20px);
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
+  /* ===== MAIN GRID ===== */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 14px;
+    min-height: 0;
+    height: 100%;
+    align-items: stretch;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    position: relative;
+  }
+  .card.stretch {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-title .icon { font-size: 32px; }
+
+  .card-badge {
+    font-size: 20px;
+    padding: 8px 20px;
+    border-radius: 24px;
+    background: rgba(124, 108, 240, 0.15);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .card-badge.green { background: rgba(0,232,120,0.15); color: var(--green); }
+  .card-badge.blue { background: rgba(77,184,255,0.15); color: var(--blue); }
+  .card-badge.red { background: rgba(255,72,72,0.15); color: var(--red); }
+
+  /* ===== WEATHER CARD ===== */
+  .weather-card {
+    background: linear-gradient(135deg, #0f1428 0%, #1a1f3e 100%);
+    flex: 0 0 auto;
+  }
+  .weather-card::before {
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .weather-main {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 16px;
+  }
+
+  .weather-icon {
+    font-size: clamp(56px, 4vw, 80px);
+    line-height: 1;
+  }
+
+  .weather-temp {
+    font-size: clamp(56px, 4vw, 80px);
+    font-weight: 200;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+  .weather-temp .unit {
+    font-size: 40px;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  .weather-desc {
+    font-size: 28px;
+    color: var(--text);
+    margin-top: 6px;
+  }
+
+  .weather-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .weather-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--bg-panel);
+    border-radius: 14px;
+  }
+
+  .weather-detail .label {
+    font-size: 18px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .weather-detail .value {
+    font-size: 32px;
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  /* ===== AGENT STATUS ===== */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .stat-box {
+    text-align: center;
+    padding: 16px;
+    background: var(--bg-panel);
+    border-radius: 14px;
+  }
+
+  .stat-num {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+  .stat-num.green { color: var(--green); }
+  .stat-num.blue { color: var(--blue); }
+  .stat-num.accent { color: var(--accent); }
+
+  .stat-label {
+    font-size: 16px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+
+  .agent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .agent-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--bg-panel);
+    border-radius: 14px;
+    min-height: 64px;
+  }
+
+  .agent-row .key {
+    font-size: 22px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .agent-row .val {
+    font-size: 24px;
+    color: var(--text-bright);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .agent-row .val.green { color: var(--green); }
+  .agent-row .val.blue { color: var(--blue); }
+
+  /* ===== POOL STATUS ===== */
+  .pool-card {
+    background: linear-gradient(135deg, #0a1828 0%, #102040 50%, #0f1830 100%);
+    flex: 0 0 auto;
+  }
+  .pool-card::before {
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  #lightsCard {
+    background: linear-gradient(135deg, #0a1428 0%, #0f1f30 100%);
+  }
+  #lightsCard::before {
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+  }
+
+  .pool-temps {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .pool-temp-box {
+    flex: 1;
+    text-align: center;
+    padding: 14px 12px;
+    background: rgba(0, 212, 255, 0.06);
+    border-radius: 16px;
+    border: 2px solid rgba(0, 212, 255, 0.12);
+  }
+
+  .pool-temp-box.active {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 24px rgba(0, 212, 255, 0.15);
+  }
+
+  .pool-temp-label {
+    font-size: 20px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .pool-temp-value {
+    font-size: clamp(40px, 3vw, 56px);
+    font-weight: 200;
+    color: var(--text-bright);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .pool-temp-value .unit {
+    font-size: 32px;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  .pool-temp-sub {
+    font-size: 18px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .pool-temp-sub.on { color: var(--green); }
+  .pool-temp-sub.off { color: var(--text-dim); }
+
+  .pool-circuits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .pool-circuit {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    min-height: 52px;
+  }
+
+  .circuit-led {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .circuit-led.on {
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+  }
+  .circuit-led.off { background: #3a3a5a; }
+
+  .circuit-name {
+    font-size: 20px;
+    color: var(--text);
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .circuit-state {
+    font-size: 16px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .circuit-state.on { color: var(--green); }
+  .circuit-state.off { color: var(--text-dim); }
+
+  .pool-env-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    margin-top: 6px;
+    min-height: 48px;
+  }
+
+  .pool-env-row .label {
+    font-size: 20px;
+    color: var(--text-dim);
+  }
+
+  .pool-env-row .value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-bright);
+  }
+
+  .pool-heat-badge {
+    display: inline-block;
+    font-size: 18px;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .pool-heat-badge.off { background: rgba(112,128,168,0.15); color: var(--text-dim); }
+  .pool-heat-badge.heating { background: rgba(255,72,72,0.15); color: var(--red); }
+
+  /* ===== LIGHTS CARD ===== */
+  .light-device {
+    padding: 14px 18px;
+    background: var(--bg-panel);
+    border-radius: 16px;
+    border-left: 4px solid var(--accent2);
+  }
+  .light-device-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .light-icon { font-size: 28px; }
+  .light-name {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-bright);
+  }
+  .light-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .light-btn {
+    padding: 12px 28px;
+    border-radius: 14px;
+    border: none;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+    min-height: 52px;
+    touch-action: manipulation;
+  }
+  .light-btn.on {
+    background: rgba(0, 232, 120, 0.2);
+    color: var(--green);
+    border: 2px solid var(--green);
+  }
+  .light-btn.on:active, .light-btn.on.active {
+    background: var(--green);
+    color: #000;
+  }
+  .light-btn.off {
+    background: rgba(112, 128, 168, 0.15);
+    color: var(--text-dim);
+    border: 2px solid var(--border);
+  }
+  .light-btn.off:active, .light-btn.off.active {
+    background: rgba(255,72,72,0.2);
+    color: var(--red);
+    border-color: var(--red);
+  }
+  .light-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--bg);
+    outline: none;
+    cursor: pointer;
+  }
+  .light-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent2);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 232, 184, 0.5);
+  }
+  .light-slider::-moz-range-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent2);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* ===== FLEET ===== */
+  .fleet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+    min-height: 0;
+    align-content: start;
+  }
+
+  .fleet-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    border-left: 4px solid var(--border);
+    min-height: 0;
+  }
+
+  .fleet-item.online { border-left-color: var(--green); }
+  .fleet-item.offline { border-left-color: var(--red); opacity: 0.5; }
+  .fleet-item.idle { border-left-color: var(--yellow); }
+
+  .fleet-launch {
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 7px 12px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .fleet-led {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .fleet-led.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .fleet-led.offline { background: var(--red); }
+  .fleet-led.idle { background: var(--yellow); }
+
+  .fleet-name {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fleet-role {
+    font-size: 16px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ===== GPU CARD ===== */
+  .gpu-bar {
+    height: 14px;
+    background: var(--bg-panel);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .gpu-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.5s ease;
+  }
+
+  .gpu-row { margin-bottom: 14px; }
+  .gpu-row:last-child { margin-bottom: 0; }
+
+  .gpu-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .gpu-label .name { color: var(--text); font-weight: 500; }
+  .gpu-label .pct { color: var(--text-bright); font-weight: 700; }
+
+  /* ===== PROJECTS ===== */
+  .project-item {
+    padding: 14px 18px;
+    background: var(--bg-panel);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    border-left: 4px solid var(--accent);
+    min-height: 60px;
+  }
+
+  .project-item.active { border-left-color: var(--accent2); }
+  .project-item.paused { border-left-color: var(--text-dim); opacity: 0.6; }
+
+  .project-name {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+  }
+
+  .project-desc {
+    font-size: 16px;
+    color: var(--text-dim);
+  }
+
+  .project-tag {
+    display: inline-block;
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 10px;
+    margin-top: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .project-tag.active { background: rgba(0,232,120,0.15); color: var(--green); }
+  .project-tag.dev { background: rgba(124,108,240,0.15); color: var(--accent); }
+
+  /* ===== ACTIVITY FEED ===== */
+  .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 80px;
+  }
+
+  .activity-item {
+    display: flex;
+    gap: 16px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    min-height: 56px;
+    align-items: center;
+    background: var(--bg-panel);
+  }
+
+  .activity-time {
+    font-size: 20px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 80px;
+    font-weight: 700;
+  }
+
+  .activity-text {
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .activity-text strong { color: var(--text-bright); }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+    font-size: 16px;
+    color: var(--text-dim);
+    min-height: 40px;
+    flex-shrink: 0;
+  }
+
+  .footer-right {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer .live-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Fullscreen toggle button (touch-friendly) -->
+<div class="fs-btn" id="fsBtn" onclick="toggleFullscreen()">⛶</div>
+
+<div class="dashboard">
+
+  <!-- ===== HEADER ===== -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">
+        <div class="logo-mark">JC</div>
+        <div class="logo-text">JC Dream <span>Command Center</span></div>
+      </div>
+      <div class="header-status">
+        <div class="led"></div>
+        <div class="text">Systems Online</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-loc">📍 Menlo Park, CA</div>
+      <div class="clock">
+        <div class="clock-time" id="clockTime">--:--</div>
+        <div class="clock-date" id="clockDate">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN GRID ===== -->
+  <div class="main-grid">
+
+    <!-- ===== COLUMN 1: Weather + Agent ===== -->
+    <div class="col">
+
+      <!-- Weather -->
+      <div class="card weather-card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🌤️</span> Weather</div>
+          <div class="card-badge" id="weatherBadge">Live</div>
+        </div>
+        <div class="weather-main">
+          <div class="weather-icon" id="weatherIcon">☀️</div>
+          <div>
+            <div class="weather-temp"><span id="weatherTemp">--</span><span class="unit">°F</span></div>
+            <div class="weather-desc" id="weatherDesc">Loading...</div>
+          </div>
+        </div>
+        <div class="weather-details">
+          <div class="weather-detail">
+            <div class="label">Feels Like</div>
+            <div class="value" id="weatherFeels">--°F</div>
+          </div>
+          <div class="weather-detail">
+            <div class="label">Humidity</div>
+            <div class="value" id="weatherHumidity">--%</div>
+          </div>
+          <div class="weather-detail">
+            <div class="label">Wind</div>
+            <div class="value" id="weatherWind">-- mph</div>
+          </div>
+          <div class="weather-detail">
+            <div class="label">UV Index</div>
+            <div class="value" id="weatherUV">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Status -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🤖</span> Jupitercore Agent</div>
+          <div class="card-badge green" id="agentBadge">ONLINE</div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-num green" id="agentUptime">--</div>
+            <div class="stat-label">Uptime</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num accent" id="agentSessions">--</div>
+            <div class="stat-label">Sessions</div>
+          </div>
+        </div>
+        <div class="agent-info">
+          <div class="agent-row">
+            <div class="key">🔵 Model</div>
+            <div class="val blue" id="agentModel">zai/glm-5.2</div>
+          </div>
+          <div class="agent-row">
+            <div class="key">💻 Host</div>
+            <div class="val">JC Dream Server</div>
+          </div>
+          <div class="agent-row">
+            <div class="key">⚡ Status</div>
+            <div class="val green" id="agentStatus">Active</div>
+          </div>
+          <div class="agent-row">
+            <div class="key">📡 Channels</div>
+            <div class="val">iMessage · Discord</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== COLUMN 2: Pool + Fleet ===== -->
+    <div class="col">
+
+      <!-- Pool Status -->
+      <div class="card pool-card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🏊</span> Pool Status <span style="color:var(--accent2);font-size:18px;letter-spacing:1px;">· Menlo Oaks</span></div>
+          <div class="pool-heat-badge off" id="poolHeatBadge">Heat Off</div>
+        </div>
+        <div class="pool-temps">
+          <div class="pool-temp-box active" id="poolTempBox">
+            <div class="pool-temp-label">Pool</div>
+            <div class="pool-temp-value"><span id="poolTemp">75</span><span class="unit">°F</span></div>
+            <div class="pool-temp-sub on" id="poolSub">Running · Filter On</div>
+          </div>
+          <div class="pool-temp-box" id="spaTempBox">
+            <div class="pool-temp-label">Spa</div>
+            <div class="pool-temp-value"><span id="spaTemp">75</span><span class="unit">°F</span></div>
+            <div class="pool-temp-sub off" id="spaSub">Standby</div>
+          </div>
+        </div>
+        <div class="pool-circuits">
+          <div class="pool-circuit">
+            <div class="circuit-led on" id="dot-filter"></div>
+            <span class="circuit-name">Filter Pump</span>
+            <span class="circuit-state on" id="state-filter">RUNNING</span>
+          </div>
+          <div class="pool-circuit">
+            <div class="circuit-led off" id="dot-cleaner"></div>
+            <span class="circuit-name">Cleaner</span>
+            <span class="circuit-state off" id="state-cleaner">OFF</span>
+          </div>
+          <div class="pool-circuit">
+            <div class="circuit-led off" id="dot-heater"></div>
+            <span class="circuit-name">Gas Heater</span>
+            <span class="circuit-state off" id="state-heater">IDLE</span>
+          </div>
+          <div class="pool-circuit">
+            <div class="circuit-led off" id="dot-solar"></div>
+            <span class="circuit-name">Solar</span>
+            <span class="circuit-state off" id="state-solar">OFF</span>
+          </div>
+        </div>
+        <div class="pool-env-row">
+          <span class="label">🌡️ Air Temp</span>
+          <span class="value" id="airTemp">82°F</span>
+        </div>
+        <div class="pool-env-row">
+          <span class="label">☀️ Solar Sensor</span>
+          <span class="value" id="solarSensor">95°F</span>
+        </div>
+      </div>
+
+      <!-- Lights -->
+      <div class="card" id="lightsCard">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">💡</span> Lights <span style="color:var(--accent2);font-size:18px;letter-spacing:1px;">· Ray's House</span></div>
+          <div class="card-badge" id="lightsBadge" style="background:rgba(0,232,184,0.15);color:var(--accent2);">Ready</div>
+        </div>
+        <div id="lightsList" style="display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow-y:auto;">
+          <!-- Landscape Lights -->
+          <div class="light-device" id="landscapeLight">
+            <div class="light-device-header">
+              <span class="light-icon">🌿</span>
+              <div class="light-name">Landscape Lights</div>
+              <div class="light-ip" style="font-size:14px;color:var(--text-dim);margin-left:auto;">TCP · 192.168.5.118:6681</div>
+              <div class="light-status-dot" id="landscapeDot" style="width:14px;height:14px;border-radius:50%;margin-left:12px;flex-shrink:0;background:#3a3a5a;"></div>
+            </div>
+            <div class="light-controls">
+              <button class="light-btn on" id="landscapeOnBtn" onclick="landscapeOn()">ON</button>
+              <button class="light-btn off" id="landscapeOffBtn" onclick="landscapeOff()">OFF</button>
+              <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+                <span style="font-size:16px;color:var(--text-dim);">Brightness</span>
+                <input type="range" class="light-slider" id="landscapeBrightness" min="0" max="100" value="100" onchange="landscapeSetBrightness(this.value)" style="width:120px;">
+                <span id="landscapeBrightnessVal" style="font-size:18px;color:var(--text-bright);min-width:44px;text-align:right;">100%</span>
+              </div>
+            </div>
+            <div class="light-discovery-msg" id="landscapeMsg" style="font-size:14px;color:var(--text-dim);margin-top:6px;">Probing controller...</div>
+          </div>
+          <!-- Elgato Key Light -->
+          <div class="light-device" id="elgatoLight">
+            <div class="light-device-header">
+              <span class="light-icon">💡</span>
+              <div class="light-name">Elgato Key Light Air</div>
+              <div class="light-ip" style="font-size:14px;color:var(--text-dim);margin-left:auto;">HTTP · 192.168.7.3:9123</div>
+              <div class="light-status-dot" id="elgatoDot" style="width:14px;height:14px;border-radius:50%;margin-left:12px;flex-shrink:0;background:#3a3a5a;"></div>
+            </div>
+            <div class="light-controls">
+              <button class="light-btn on" id="elgatoOnBtn" onclick="elgatoOn()">ON</button>
+              <button class="light-btn off" id="elgatoOffBtn" onclick="elgatoOff()">OFF</button>
+              <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+                <span style="font-size:16px;color:var(--text-dim);">Brightness</span>
+                <input type="range" class="light-slider" id="elgatoBrightness" min="0" max="100" value="50" onchange="elgatoSetBrightness(this.value)" style="width:120px;">
+                <span id="elgatoBrightnessVal" style="font-size:18px;color:var(--text-bright);min-width:44px;text-align:right;">50%</span>
+              </div>
+            </div>
+            <div class="light-discovery-msg" id="elgatoMsg" style="font-size:14px;color:var(--text-dim);margin-top:6px;">Probing...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet Status -->
+      <div class="card stretch">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🛰️</span> Infrastructure Fleet</div>
+          <a class="fleet-launch" href="http://192.168.7.163:8766/">📡 Bluetooth Radar</a>
+          <div class="card-badge green" id="fleetBadge">--/-- Online</div>
+        </div>
+        <div class="fleet-grid" id="fleetList"></div>
+      </div>
+
+    </div>
+
+    <!-- ===== COLUMN 3: Projects + Activity + GPU ===== -->
+    <div class="col">
+
+      <!-- Vision GPU -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🎮</span> Vision GPU Server</div>
+          <div class="card-badge blue">Connected</div>
+        </div>
+        <div class="gpu-row">
+          <div class="gpu-label">
+            <span class="name">GPU Utilization</span>
+            <span class="pct" id="gpuUtil">--%</span>
+          </div>
+          <div class="gpu-bar">
+            <div class="gpu-bar-fill" id="gpuUtilBar" style="width:0%; background:linear-gradient(90deg, var(--blue), var(--accent));"></div>
+          </div>
+        </div>
+        <div class="gpu-row">
+          <div class="gpu-label">
+            <span class="name">VRAM</span>
+            <span class="pct" id="gpuVram">--%</span>
+          </div>
+          <div class="gpu-bar">
+            <div class="gpu-bar-fill" id="gpuVramBar" style="width:0%; background:linear-gradient(90deg, var(--accent), var(--accent3));"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JC Dream Projects -->
+      <div class="card" style="flex:0 0 auto;">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🎯</span> Active Projects</div>
+          <div class="card-badge" id="projectCount">5</div>
+        </div>
+        <div id="projectList">
+          <div class="project-item active">
+            <div class="project-name">Portal Dashboard</div>
+            <div class="project-desc">Meta Portal home screen status display</div>
+            <div class="project-tag active">In Progress</div>
+          </div>
+          <div class="project-item active">
+            <div class="project-name">OpenClaw Agent</div>
+            <div class="project-desc">Personal AI assistant infrastructure</div>
+            <div class="project-tag active">Operational</div>
+          </div>
+          <div class="project-item active">
+            <div class="project-name">Smart Home Automation</div>
+            <div class="project-desc">Hue, pool, energy monitoring</div>
+            <div class="project-tag active">Running</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="card stretch">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📡</span> Recent Activity</div>
+          <div class="card-badge green">Live</div>
+        </div>
+        <div class="activity-feed" id="activityFeed"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="footer">
+    <div>
+      <span class="live-dot"></span>
+      JC Dream Command Center v2.0 · Auto-refresh 60s · Updated <span id="lastUpdate">--</span>
+    </div>
+    <div class="footer-right">
+      <span>Tailnet: connected</span>
+      <span>Region: us-west</span>
+      <span id="portalInfo">Portal · 2160×1440</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== FULLSCREEN TOGGLE =====
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{});
+  } else {
+    document.exitFullscreen().catch(()=>{});
+  }
+}
+// Auto-request fullscreen on first touch
+let fsEntered = false;
+document.addEventListener('touchstart', () => {
+  if (!fsEntered && !document.fullscreenElement) {
+    fsEntered = true;
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+}, { once: true });
+
+// ===== POOL STATUS =====
+// Ray's Pentair IntelliCenter via rPi proxy (raw TCP -> HTTP JSON)
+const POOL_API = 'http://' + window.location.hostname + ':9001/';
+let poolWsConnected = false;
+
+function cToF(c) { return Math.round(c * 9/5 + 32); }
+
+function connectPoolWS() {
+  // Kept for compatibility — actual fetching is HTTP now
+  poolWsConnected = true;
+  requestPoolStatus();
+}
+
+function requestPoolStatus() {
+  fetch(POOL_API)
+    .then(r => r.json())
+    .then(data => { handlePoolResponse(data); poolWsConnected = true; })
+    .catch(e => { poolWsConnected = false; });
+}
+
+function handlePoolResponse(data) {
+  if (!data.objectList) return;
+  let poolTempC = null, spaTempC = null, airTempC = null, solarTempC = null;
+  let poolOn = false, spaOn = false, cleanerOn = false, filterOn = false;
+  let solarHeaterOn = false, gasHeaterOn = false;
+  let poolHeatMode = 0;
+
+  data.objectList.forEach(obj => {
+    const p = obj.params || {};
+    switch(obj.objnam) {
+      case 'B1101': poolTempC = parseInt(p.TEMP); poolHeatMode = parseInt(p.HTMODE)||0; poolOn = p.STATUS==='ON'; break;
+      case 'B1202': spaTempC = parseInt(p.TEMP); spaOn = p.STATUS==='ON'; break;
+      case '_A135': airTempC = parseInt(p.PROBE); break;
+      case 'SSS11': solarTempC = parseInt(p.PROBE); break;
+      case 'C0006': poolOn = poolOn || p.STATUS==='ON'; break;
+      case 'C0001': spaOn = spaOn || p.STATUS==='ON'; break;
+      case 'X0050': case 'X0043': cleanerOn = cleanerOn || p.STATUS==='ON'; break;
+      case 'PMP01': filterOn = p.STATUS && p.STATUS!=='0' && p.STATUS!=='OFF'; break;
+      case 'H0001': solarHeaterOn = p.STATUS==='ON'; break;
+      case 'H0002': gasHeaterOn = p.STATUS==='ON'; break;
+    }
+  });
+
+  if (poolTempC !== null && !isNaN(poolTempC)) document.getElementById('poolTemp').textContent = poolTempC;
+  if (spaTempC !== null && !isNaN(spaTempC)) document.getElementById('spaTemp').textContent = spaTempC;
+  if (airTempC !== null && !isNaN(airTempC)) document.getElementById('airTemp').textContent = airTempC + '°F';
+  if (solarTempC !== null && !isNaN(solarTempC)) document.getElementById('solarSensor').textContent = solarTempC + '°F';
+
+  const poolBox = document.getElementById('poolTempBox');
+  const poolSub = document.getElementById('poolSub');
+  if (poolOn) {
+    poolBox.classList.add('active'); poolSub.className='pool-temp-sub on';
+    poolSub.textContent = filterOn ? 'Running · Filter On' : 'Running';
+  } else {
+    poolBox.classList.remove('active'); poolSub.className='pool-temp-sub off'; poolSub.textContent = 'Standby';
+  }
+
+  const spaBox = document.getElementById('spaTempBox');
+  const spaSub = document.getElementById('spaSub');
+  if (spaOn) {
+    spaBox.classList.add('active'); spaSub.className='pool-temp-sub on'; spaSub.textContent='Active';
+  } else {
+    spaBox.classList.remove('active'); spaSub.className='pool-temp-sub off'; spaSub.textContent='Standby';
+  }
+
+  function setCircuit(dotId, stateId, on, onLabel, offLabel) {
+    const dot = document.getElementById(dotId);
+    const state = document.getElementById(stateId);
+    if (on) { dot.className='circuit-led on'; state.className='circuit-state on'; state.textContent=onLabel; }
+    else { dot.className='circuit-led off'; state.className='circuit-state off'; state.textContent=offLabel; }
+  }
+  setCircuit('dot-filter','state-filter',filterOn,'RUNNING','OFF');
+  setCircuit('dot-cleaner','state-cleaner',cleanerOn,'CLEANING','OFF');
+  setCircuit('dot-solar','state-solar',solarHeaterOn&&poolOn,'HEATING','OFF');
+  const heaterActive = (poolHeatMode > 0) && gasHeaterOn;
+  setCircuit('dot-heater','state-heater',heaterActive,'HEATING','IDLE');
+
+  const heatBadge = document.getElementById('poolHeatBadge');
+  if (poolHeatMode > 0 && poolOn) { heatBadge.className='pool-heat-badge heating'; heatBadge.textContent='Heating'; }
+  else { heatBadge.className='pool-heat-badge off'; heatBadge.textContent='Heat Off'; }
+}
+
+// ===== CONFIG =====
+const REFRESH_MS = 60000;
+
+const FLEET = [
+  { name: "JC Dream Server", os: 'Server', status: 'online', role: 'Agent Host' },
+  { name: 'jupitercore', os: 'Linux', status: 'online', role: 'Container' },
+  { name: 'vision', os: 'Windows', status: 'online', role: 'GPU Server' },
+  { name: 'moc-bt', os: 'Linux', status: 'online', role: 'RPi / ADB' },
+  { name: 'clawnas', os: 'Linux', status: 'online', role: 'NAS' },
+  { name: 'iPhone', os: 'iOS', status: 'online', role: 'Mobile' },
+  { name: 'MBP 14', os: 'macOS', status: 'online', role: 'Laptop' },
+  { name: 'portal-1', os: 'Android', status: 'idle', role: 'Meta Portal' },
+  { name: 'glinet', os: 'Linux', status: 'idle', role: 'Router' },
+  { name: 'hatch-kit', os: 'Linux', status: 'offline', role: 'Dev Kit' },
+  { name: 'lisa', os: 'Windows', status: 'offline', role: 'Desktop' },
+];
+
+// ===== CLOCK =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockTime').textContent =
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clockDate').textContent =
+    `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+}
+
+// ===== WEATHER =====
+const weatherIcons = {
+  'Sunny':'☀️','Clear':'🌙','Partly cloudy':'⛅','Cloudy':'☁️','Overcast':'☁️',
+  'Mist':'🌫️','Patchy rain possible':'🌦️','Light rain':'🌦️','Moderate rain':'🌧️',
+  'Heavy rain':'⛈️','Light snow':'🌨️','Thunderstorm':'⛈️','Fog':'🌫️',
+};
+
+  // Tempest weather station via rPi proxy (UDP listener on 50222)
+  const TEMpest_API = 'http://' + window.location.hostname + ':9002/weather';
+
+  async function updateWeather() {
+    try {
+      const res = await fetch(TEMpest_API);
+      const w = await res.json();
+      if (!w.temp_f) throw new Error('no data yet');
+      document.getElementById('weatherTemp').textContent = w.temp_f;
+      document.getElementById('weatherDesc').textContent = 'Live Station';
+      document.getElementById('weatherFeels').textContent = w.feelslike + '°F';
+      document.getElementById('weatherHumidity').textContent = w.humidity + '%';
+      document.getElementById('weatherWind').textContent = w.wind_mph + ' mph';
+      document.getElementById('weatherUV').textContent = w.uv;
+      document.getElementById('weatherIcon').textContent = '🏠';
+      const badge = document.getElementById('weatherBadge');
+      badge.textContent = 'Tempest Live'; badge.className = 'card-badge green';
+    } catch (e) {
+      // Fallback to wttr.in
+      try {
+        const res = await fetch('https://wttr.in/Menlo+Park,CA?format=j1');
+        const data = await res.json();
+        const cur = data.current_condition[0];
+        const desc = cur.weatherDesc[0].value;
+        document.getElementById('weatherTemp').textContent = cur.temp_F;
+        document.getElementById('weatherDesc').textContent = desc;
+        document.getElementById('weatherFeels').textContent = cur.FeelsLikeF + '°F';
+        document.getElementById('weatherHumidity').textContent = cur.humidity + '%';
+        document.getElementById('weatherWind').textContent = cur.windspeedMiles + ' mph';
+        document.getElementById('weatherUV').textContent = cur.uvIndex;
+        const icons = {'Sunny':'☀️','Clear':'🌙','Partly cloudy':'⛅','Cloudy':'☁️','Overcast':'☁️'};
+        document.getElementById('weatherIcon').textContent = icons[desc] || '🌤️';
+        const badge = document.getElementById('weatherBadge');
+        badge.textContent = 'wttr.in'; badge.className = 'card-badge blue';
+      } catch(e2) {
+        const badge = document.getElementById('weatherBadge');
+        badge.textContent = 'Offline'; badge.className = 'card-badge red';
+      }
+    }
+  }
+
+// ===== FLEET =====
+function renderFleet() {
+  const container = document.getElementById('fleetList');
+  container.innerHTML = '';
+  let online = 0;
+  FLEET.forEach(node => {
+    if (node.status === 'online') online++;
+    const div = document.createElement('div');
+    div.className = `fleet-item ${node.status}`;
+    div.innerHTML = `
+      <div class="fleet-led ${node.status}"></div>
+      <div style="flex:1;">
+        <div class="fleet-name">${node.name}</div>
+        <div class="fleet-role">${node.role}</div>
+      </div>
+      <div class="fleet-role">${node.os}</div>
+    `;
+    container.appendChild(div);
+  });
+  document.getElementById('fleetBadge').textContent = `${online}/${FLEET.length} Online`;
+
+  // GPU data (simulated until real endpoint)
+  const gpuUtil = 34 + Math.floor(Math.random() * 20);
+  const gpuVram = 6144 + Math.floor(Math.random() * 2048);
+  const gpuVramPct = Math.round((gpuVram / 24576) * 100);
+  document.getElementById('gpuUtil').textContent = `${gpuUtil}%`;
+  document.getElementById('gpuUtilBar').style.width = `${gpuUtil}%`;
+  document.getElementById('gpuVram').textContent = `${gpuVramPct}%`;
+  document.getElementById('gpuVramBar').style.width = `${gpuVramPct}%`;
+}
+
+// ===== AGENT STATUS =====
+function updateAgentStatus() {
+  const bootTime = parseInt(localStorage.getItem('bootTime') || Date.now());
+  localStorage.setItem('bootTime', bootTime);
+  const uptimeMs = Date.now() - bootTime;
+  const days = Math.floor(uptimeMs / 86400000);
+  const hours = Math.floor((uptimeMs % 86400000) / 3600000);
+  const mins = Math.floor((uptimeMs % 3600000) / 60000);
+  let uptimeStr;
+  if (days > 0) uptimeStr = `${days}d ${hours}h`;
+  else if (hours > 0) uptimeStr = `${hours}h ${mins}m`;
+  else uptimeStr = `${mins}m`;
+  document.getElementById('agentUptime').textContent = uptimeStr;
+  document.getElementById('agentSessions').textContent = 12 + Math.floor(Math.random() * 5);
+  document.getElementById('lastUpdate').textContent =
+    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+// ===== ACTIVITY FEED =====
+const activityLog = [
+  { time: '18:01', html: '<strong>Dashboard v2.0</strong> deployed with large-format redesign' },
+  { time: '14:13', html: '<strong>Portal Dashboard</strong> deployed to Meta Portal' },
+  { time: '14:10', html: '<strong>Jupitercore</strong> session started · glm-5.2' },
+  { time: '14:08', html: '<strong>Vision</strong> GPU server responding on tailnet' },
+  { time: '13:45', html: '<strong>moc-bluetooth</strong> ADB connection verified' },
+  { time: '12:30', html: '<strong>JC Dream</strong> group chat active' },
+  { time: '11:00', html: '<strong>OpenClaw</strong> heartbeat check completed' },
+];
+
+function renderActivity() {
+  const container = document.getElementById('activityFeed');
+  container.innerHTML = '';
+  activityLog.slice(0, 10).forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'activity-item';
+    div.innerHTML = `<div class="activity-time">${item.time}</div><div class="activity-text">${item.html}</div>`;
+    container.appendChild(div);
+  });
+}
+
+// ===== LIGHTS CONTROL =====
+// Landscape lights at 192.168.5.118:6681 via rPi proxy on port 9003
+const LANDSCAPE_PROXY = 'http://' + window.location.hostname + ':9003/light-proxy/';
+
+function landscapeSetStatus(online, msg) {
+  const dot = document.getElementById('landscapeDot');
+  const badge = document.getElementById('lightsBadge');
+  const msgEl = document.getElementById('landscapeMsg');
+  if (online) {
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow = '0 0 10px var(--green)';
+    badge.textContent = 'Online';
+    badge.style.background = 'rgba(0,232,120,0.15)';
+    badge.style.color = 'var(--green)';
+  } else {
+    dot.style.background = '#3a3a5a';
+    dot.style.boxShadow = 'none';
+    badge.textContent = 'Partial';
+    badge.style.background = 'rgba(255,204,64,0.15)';
+    badge.style.color = 'var(--yellow)';
+  }
+  if (msg) msgEl.textContent = msg;
+}
+
+function landscapeOn() {
+  const btn = document.getElementById('landscapeOnBtn');
+  const offBtn = document.getElementById('landscapeOffBtn');
+  btn.classList.add('active');
+  offBtn.classList.remove('active');
+  document.getElementById('landscapeMsg').textContent = 'Sending ON command...';
+  // Try via proxy
+  fetch(LANDSCAPE_PROXY + 'on', { method: 'POST' })
+    .then(r => r.json().catch(() => ({})))
+    .then(d => {
+      document.getElementById('landscapeMsg').textContent =
+        'Controller: ' + JSON.stringify(d).substring(0, 100);
+      landscapeSetStatus(true, 'Command sent');
+    })
+    .catch(e => {
+      document.getElementById('landscapeMsg').textContent = 'Proxy unreachable - is proxy running on rPi?';
+      landscapeSetStatus(false, 'Proxy offline');
+    });
+}
+
+function landscapeOff() {
+  const btn = document.getElementById('landscapeOffBtn');
+  const onBtn = document.getElementById('landscapeOnBtn');
+  btn.classList.add('active');
+  onBtn.classList.remove('active');
+  document.getElementById('landscapeMsg').textContent = 'Sending OFF command...';
+  fetch(LANDSCAPE_PROXY + 'off', { method: 'POST' })
+    .then(r => r.json().catch(() => ({})))
+    .then(d => {
+      document.getElementById('landscapeMsg').textContent =
+        'Controller: ' + JSON.stringify(d).substring(0, 100);
+    })
+    .catch(e => {
+      document.getElementById('landscapeMsg').textContent = 'Proxy unreachable - is proxy running on rPi?';
+    });
+}
+
+function landscapeSetBrightness(val) {
+  document.getElementById('landscapeBrightnessVal').textContent = val + '%';
+  document.getElementById('landscapeMsg').textContent = 'Setting brightness ' + val + '%...';
+  fetch(LANDSCAPE_PROXY + 'brightness', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ level: parseInt(val) })
+  })
+    .then(r => r.json().catch(() => ({})))
+    .then(d => {
+      document.getElementById('landscapeMsg').textContent =
+        'Controller: ' + JSON.stringify(d).substring(0, 120);
+    })
+    .catch(e => {
+      document.getElementById('landscapeMsg').textContent = 'Proxy error: ' + e.message;
+    });
+}
+
+// Probe landscape controller via proxy
+function probeLandscape() {
+  fetch(LANDSCAPE_PROXY + 'health', { method: 'GET' })
+    .then(r => r.json())
+    .then(d => {
+      landscapeSetStatus(true, 'Controller reachable via proxy');
+    })
+    .catch(e => {
+      landscapeSetStatus(false, 'Proxy offline - run landscape-proxy.py on rPi');
+    });
+}
+
+// Elgato Key Light Air at 192.168.7.3:9123 - direct HTTP
+const ELGATO_HOST = 'http://192.168.7.3:9123';
+
+function elgatoSetStatus(online, msg) {
+  const dot = document.getElementById('elgatoDot');
+  if (online) {
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow = '0 0 10px var(--green)';
+  } else {
+    dot.style.background = '#3a3a5a';
+    dot.style.boxShadow = 'none';
+  }
+  if (msg) document.getElementById('elgatoMsg').textContent = msg;
+}
+
+function elgatoSetLights(power, brightness) {
+  const on = power !== undefined ? power : 1;
+  const bri = brightness !== undefined ? brightness : 100;
+  const body = JSON.stringify({
+    lights: [{ on: { value: on }, brightness: { value: bri } }]
+  });
+  fetch(ELGATO_HOST + '/elgato/lights', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: body
+  })
+    .then(r => r.json().catch(() => ({})))
+    .then(d => {
+      if (d && d.lights) {
+        elgatoSetStatus(true, 'OK - brightness: ' + (d.lights[0].brightness ? d.lights[0].brightness.value : '?') + '%');
+      } else {
+        elgatoSetStatus(true, 'Sent OK');
+      }
+    })
+    .catch(e => {
+      elgatoSetStatus(false, 'HTTP unreachable from Portal - check network');
+    });
+}
+
+function elgatoOn() {
+  const btn = document.getElementById('elgatoOnBtn');
+  const offBtn = document.getElementById('elgatoOffBtn');
+  btn.classList.add('active');
+  offBtn.classList.remove('active');
+  const bri = parseInt(document.getElementById('elgatoBrightness').value);
+  elgatoSetLights(1, bri);
+  document.getElementById('elgatoMsg').textContent = 'Turning ON...';
+}
+
+function elgatoOff() {
+  const btn = document.getElementById('elgatoOffBtn');
+  const onBtn = document.getElementById('elgatoOnBtn');
+  btn.classList.add('active');
+  onBtn.classList.remove('active');
+  elgatoSetLights(0, 0);
+  document.getElementById('elgatoMsg').textContent = 'Turning OFF...';
+}
+
+function elgatoSetBrightness(val) {
+  document.getElementById('elgatoBrightnessVal').textContent = val + '%';
+  elgatoSetLights(1, parseInt(val));
+}
+
+function probeElgato() {
+  fetch(ELGATO_HOST + '/elgato/lights', {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' }
+  })
+    .then(r => r.json())
+    .then(d => {
+      elgatoSetStatus(true, 'Connected - ' + (d.lights ? d.lights.length + ' light(s)' : 'OK'));
+      if (d && d.lights && d.lights[0]) {
+        const l = d.lights[0];
+        const on = l.on && l.on.value ? 1 : 0;
+        const bri = l.brightness ? l.brightness.value : 50;
+        document.getElementById('elgatoBrightness').value = bri;
+        document.getElementById('elgatoBrightnessVal').textContent = bri + '%';
+        if (on) {
+          document.getElementById('elgatoOnBtn').classList.add('active');
+          document.getElementById('elgatoOffBtn').classList.remove('active');
+        } else {
+          document.getElementById('elgatoOffBtn').classList.add('active');
+          document.getElementById('elgatoOnBtn').classList.remove('active');
+        }
+      }
+    })
+    .catch(e => {
+      elgatoSetStatus(false, 'Device unreachable from Portal - check Elgato power/network');
+    });
+}
+
+// ===== INIT =====
+updateClock();
+setInterval(updateClock, 1000);
+updateWeather();
+setInterval(updateWeather, REFRESH_MS);
+renderFleet();
+updateAgentStatus();
+renderActivity();
+connectPoolWS();
+setInterval(() => { if (poolWsConnected) requestPoolStatus(); }, REFRESH_MS);
+setInterval(() => { renderFleet(); renderActivity(); updateAgentStatus(); }, REFRESH_MS);
+
+// Prevent screen sleep
+if ('wakeLock' in navigator) { navigator.wakeLock.request('screen').catch(()=>{}); }
+
+// ===== LIGHTS INIT =====
+// Try to probe devices after other init is done
+setTimeout(() => { probeLandscape(); probeElgato(); }, 3000);
+setInterval(() => { probeLandscape(); probeElgato(); }, 60000);
+
+</script>
+</body>
+</html>
